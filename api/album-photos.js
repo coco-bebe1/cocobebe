@@ -51,9 +51,12 @@ export default async function handler(req, res) {
       
       console.log('[album-photos] Inserting photo:', { title, url });
       
+      // 현재 날짜를 ISO 문자열로
+      const currentDate = new Date().toISOString();
+      
       const { rows } = await sql`
-        INSERT INTO album_photos (title, url, created_at) 
-        VALUES (${title}, ${url}, NOW()) 
+        INSERT INTO album_photos (title, url, date) 
+        VALUES (${title}, ${url}, ${currentDate}) 
         RETURNING *
       `;
       

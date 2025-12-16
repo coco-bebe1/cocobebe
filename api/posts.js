@@ -54,9 +54,12 @@ export default async function handler(req, res) {
       
       console.log('[posts] Inserting post:', { title, author: authorValue, type: typeValue });
       
+      // 현재 날짜를 ISO 문자열로
+      const currentDate = new Date().toISOString();
+      
       const { rows } = await sql`
-        INSERT INTO posts (title, content, author, type, created_at) 
-        VALUES (${title}, ${content}, ${authorValue}, ${typeValue}, NOW()) 
+        INSERT INTO posts (title, content, author, type, date) 
+        VALUES (${title}, ${content}, ${authorValue}, ${typeValue}, ${currentDate}) 
         RETURNING *
       `;
       
@@ -80,35 +83,12 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'At least one field is required to update' });
       }
       
-      let updateQuery = 'UPDATE posts SET ';
-      const updates = [];
-      const values = [];
-      
-      if (title) {
-        updates.push(`title = $${updates.length + 1}`);
-        values.push(title);
-      }
-      if (content) {
-        updates.push(`content = $${updates.length + 1}`);
-        values.push(content);
-      }
-      if (author) {
-        updates.push(`author = $${updates.length + 1}`);
-        values.push(author);
-      }
-      if (type) {
-        updates.push(`type = $${updates.length + 1}`);
-        values.push(type);
-      }
-      
-      // SQL 템플릿 리터럴 사용이므로 다시 구성
       const { rows } = await sql`
         UPDATE posts 
         SET title = COALESCE(${title || null}, title),
             content = COALESCE(${content || null}, content),
             author = COALESCE(${author || null}, author),
-            type = COALESCE(${type || null}, type),
-            updated_at = NOW()
+            type = COALESCE(${type || null}, type)
         WHERE id = ${parseInt(id)}
         RETURNING *
       `;
