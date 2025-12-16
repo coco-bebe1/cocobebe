@@ -1,9 +1,4 @@
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,8 +12,8 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const result = await pool.query('SELECT * FROM album_photos ORDER BY id DESC');
-      return res.status(200).json(result.rows);
+      const { rows } = await sql`SELECT * FROM album_photos ORDER BY id DESC`;
+      return res.status(200).json(rows);
     }
 
     if (req.method === 'POST') {
@@ -27,12 +22,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'title and url required' });
       }
       
-      const result = await pool.query(
-        'INSERT INTO album_photos (title, url) VALUES ($1, $2) RETURNING *',
-        [title, url]
-      );
+      const { rows } = await sql`
+        INSERT INTO album_photos (title, url) 
+        VALUES (${title}, ${url}) 
+        RETURNING *
+      `;
       
-      return res.status(201).json(result.rows[0]);
+      return res.status(201).json(rows[0]);
     }
 
     res.status(405).json({ error: 'Method not allowed' });
