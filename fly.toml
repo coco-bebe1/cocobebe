@@ -1,0 +1,35 @@
+app = "cocobebe-backend"
+primary_region = "nrt"
+
+[build]
+  builder = "heroku"
+
+[env]
+  DATABASE_URL = "postgresql://cocobebe_2s46_user:AhUhpJ0JSwNrcNcvMzlybL6iDYRxpgx4@dpg-d4vo1ehr0fns739pgqe0-a.singapore-postgres.render.com:5432/cocobebe_2s46?sslmode=require"
+  NODE_ENV = "production"
+  PORT = "5000"
+
+[http_service]
+  internal_port = 5000
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 5000
+  processes = ["app"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 100
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
